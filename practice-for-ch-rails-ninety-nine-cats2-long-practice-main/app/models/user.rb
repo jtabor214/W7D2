@@ -34,7 +34,21 @@ class User < ApplicationRecord
         pass_obj.is_password?(password)
     end
 
-    
+    def ensure_session_token
+        self.session_token ||= SecureRandom::urlsafe_base64
+    end
 
+    def reset_session_token!
+        self.session_token = SecureRandom::urlsafe_base64
+        while !self.save
+            self.session_token = SecureRandom::urlsafe_base64
+        end
+        self.session_token
+        # self.save! will return a "loud" error
+    end
+
+    validates :username, :session_token, :email, presence: true, uniqueness: true
+    validates :password, presence: true, length: { minimum: 6 }
+    validates :password_digest, presence: true
     
 end
